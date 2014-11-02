@@ -105,7 +105,6 @@ static char *camera_fixup_getparams(int id, const char *settings)
     /* Face detection */
     params.set(android::CameraParameters::KEY_MAX_NUM_DETECTED_FACES_HW, "0");
     params.set(android::CameraParameters::KEY_MAX_NUM_DETECTED_FACES_SW, "0");
-    params.set(android::CameraParameters::KEY_FACE_DETECTION, "off");
     params.set("scene-detect", "on");
 
     /* Set correct caf-focus-mode */ 
@@ -115,6 +114,13 @@ static char *camera_fixup_getparams(int id, const char *settings)
 	params.set("caf-focus-mode", "touch");
     else
 	params.set("caf-focus-mode", "default");
+
+#ifdef CAMERA_FRONT_VGA
+    if (id == 1) {
+        params.set(android::CameraParameters::KEY_SUPPORTED_PREVIEW_SIZES,
+                "640x480,640x384,640x368,576x432,480x320,384x288,352x288,320x240,240x160,176x144");
+    }
+#endif
 
 #if !LOG_NDEBUG
     ALOGV("%s: fixed parameters:", __FUNCTION__);
@@ -140,7 +146,6 @@ static char *camera_fixup_setparams(int id, const char *settings)
     /* Face detection */
     params.set(android::CameraParameters::KEY_MAX_NUM_DETECTED_FACES_HW, "0");
     params.set(android::CameraParameters::KEY_MAX_NUM_DETECTED_FACES_SW, "0");
-    params.set(android::CameraParameters::KEY_FACE_DETECTION, "off");
     params.set("scene-detect", "on");
     
     /* Set correct caf-focus-mode */
