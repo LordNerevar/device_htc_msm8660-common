@@ -5,11 +5,7 @@ LOCAL_SRC_FILES := \
     CameraWrapper.cpp
 
 LOCAL_SHARED_LIBRARIES := \
-    libhardware liblog libcamera_client libutils
-
-ifeq ($(BOARD_CAMERA_FRONT_VGA),true)
-LOCAL_CFLAGS += -DCAMERA_FRONT_VGA
-endif
+    libhardware liblog libcamera_client libutils libcutils
 
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_MODULE := camera.$(TARGET_BOARD_PLATFORM)
