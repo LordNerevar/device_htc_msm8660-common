@@ -1,3 +1,4 @@
+#include <rpc/fixes.h>
 #include <rpc/rpc.h>
 #include <arpa/inet.h>
 #include <errno.h>
@@ -12,6 +13,7 @@ extern int r_control(int handle, const uint32 cmd, void *arg);
 static void xdr_std_destroy(xdr_s_type *xdr)
 {
     /* whatever */
+    UNUSED(xdr);
 }
 
 static bool_t xdr_std_control(xdr_s_type *xdr, int request, void *info)
@@ -22,6 +24,7 @@ static bool_t xdr_std_control(xdr_s_type *xdr, int request, void *info)
 static bool_t xdr_std_msg_done(xdr_s_type *xdr)
 {
     /* whatever */
+    UNUSED(xdr);
     return TRUE;
 }
 
@@ -65,9 +68,11 @@ static bool_t xdr_std_msg_start(xdr_s_type *xdr,
     xdr->out_next = (RPC_OFFSET+2)*sizeof(uint32);
 
     /* we write the pacmark header when we send the message. */
-    ((uint32 *)xdr->out_msg)[RPC_OFFSET] = htonl(xdr->xid);
+    uint32 tmp = htonl(xdr->xid);
+    memcpy(&(xdr->out_msg[RPC_OFFSET]), &tmp, sizeof(uint32));
     /* rpc call or reply? */
-    ((uint32 *)xdr->out_msg)[RPC_OFFSET+1] = htonl(rpc_msg_type);
+    tmp = htonl(rpc_msg_type);
+    memcpy(&(xdr->out_msg[RPC_OFFSET+4]), &tmp, sizeof(uint32));
 
     return TRUE;
 }
@@ -75,6 +80,7 @@ static bool_t xdr_std_msg_start(xdr_s_type *xdr,
 static bool_t xdr_std_msg_abort(xdr_s_type *xdr)
 {
     /* dummy */
+    UNUSED(xdr);
     return TRUE;
 }
 
@@ -115,7 +121,8 @@ static bool_t xdr_std_read(xdr_s_type *xdr)
 static bool_t xdr_std_send_uint32(xdr_s_type *xdr, const uint32 *value)
 {
     if (xdr->out_next >= RPCROUTER_MSGSIZE_MAX - 3) return FALSE;
-    *(int32 *)(xdr->out_msg + xdr->out_next) = htonl(*value);
+    uint32 tmp = htonl(*value);
+    memcpy(xdr->out_msg + xdr->out_next, &tmp, sizeof(uint32));
     xdr->out_next += 4;
     return TRUE;
 }
@@ -204,7 +211,7 @@ static bool_t xdr_std_recv_uint32(xdr_s_type *xdr, uint32 *value)
 #endif
         
     if (xdr->in_next + 4 > xdr->in_len) { return FALSE; }
-    if (value) *value = ntohl(*(uint32 *)(xdr->in_msg + xdr->in_next));
+    if (value) *value = EXTRACT_32BITS(xdr->in_msg + xdr->in_next);
     xdr->in_next += 4;
     return TRUE;
 }
